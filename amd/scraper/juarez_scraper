@@ -1,0 +1,57 @@
+coding: utf-8 -*-
+"""
+Created on Fri Oct  5 12:19:47 2018
+
+@author: Daniel
+"""
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+
+url = 'https://maquiladoras.infomaquila.com/tag/ciudad-juarez/page/10'
+
+def read_parent(url):
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    results = soup.find_all('div', attrs={'class' : 'preview'})
+    
+    for result in results:
+        child_url = result.find('a')['href']
+        name = result.find('img')['alt']
+        info = extract_from_child(child_url)
+        try:
+            address = info[0]
+            phone = info[2][17:]
+            cat = info[3]
+        except:
+            address = "TBA"
+            phone = "TBA"
+            cat = "TBA"
+        
+        records.append((name,address,phone,cat))
+
+        
+def extract_from_child(child_url):
+    child_html = requests.get(child_url)
+    child_soup = BeautifulSoup(child_html.text, 'html.parser')
+    child_results = child_soup.find_all('div', attrs={'class' : 'entry article'})
+    for child_result in child_results:
+        info = child_result.find('p').text[:-26].split(',')
+    cat_results = child_soup.find_all('a', attrs={'rel' : 'tag'})
+    info.append(cat_results[2].text)
+    return info
+        
+records = []
+read_parent(url)
+
+for i in range(2,36):
+    url = 'https://maquiladoras.infomaquila.com/tag/ciudad-juarez/page/' + str(i)
+    read_parent(url)
+
+table = pd.DataFrame(records, columns=['name','address','phone','category'])
+table.to_csv('maquilas-with-cat.csv', index=False, encoding='utf-8')
+
+
+
+
+
