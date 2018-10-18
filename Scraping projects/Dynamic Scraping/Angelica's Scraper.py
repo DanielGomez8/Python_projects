@@ -3,6 +3,8 @@
 Created on Tue Oct 16 13:04:51 2018
 
 @author: Daniel
+
+This script extracts the HTML code of a case page on the website
 """
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
